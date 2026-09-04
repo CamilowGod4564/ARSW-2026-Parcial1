@@ -34,8 +34,27 @@ public class HostBlackListsValidator {
         
         HostBlacklistsDataSourceFacade skds=HostBlacklistsDataSourceFacade.getInstance();
 
-        porciones = skds.getRegisteredServersCount()/N;
-        residuo = skds.getRegisteredServersCount()%N;
+        int partes = skds.getRegisteredServersCount()/N;
+        int sobrante = skds.getRegisteredServersCount()%N;
+
+        LinkedList<ThreadSearch> hilos = new LinkedList<>();
+
+        int inicio = partes + sobrante;
+        ThreadSearch hilo = new ThreadSearch(0,inicio,ipaddress);
+        hilos.add(hilo);
+        for(int i=0;i<N-1;i++){
+            int fin = inicio + partes;
+            int finHilo = fin -1;
+
+        }
+
+        for(int i=0;i<N-1;i++){
+            int fin = inicio + partes;
+            int finHilo = fin -1;
+            System.out.println("Hilo"+i+": (inicio,fin):"+inicio+","+finHilo);
+            inicio = fin;
+            porciones.add(inicio);
+        }
 
 
 
