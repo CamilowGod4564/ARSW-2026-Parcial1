@@ -29,9 +29,15 @@ public class HostBlackListsValidator {
      * @param ipaddress suspicious host's IP address.
      * @return  Blacklists numbers where the given host's IP address was found.
      */
+
+
+    //2. agrego parametro n para dividir la busqueda en hilos
     public List<Integer> checkHost(String ipaddress, int N){
 
-        
+
+
+        // esta parte corresponde a la separacion de la lista de acuerdo a la cantidad de hilos
+        // si es impar o par, el restante se le suma a la primera porcion y las demas son de partes iguales
         HostBlacklistsDataSourceFacade skds=HostBlacklistsDataSourceFacade.getInstance();
 
         int partes = skds.getRegisteredServersCount()/N;
@@ -45,33 +51,44 @@ public class HostBlackListsValidator {
         for(int i=0;i<N-1;i++){
             int fin = inicio + partes;
             int finHilo = fin -1;
-
-        }
-
-        for(int i=0;i<N-1;i++){
-            int fin = inicio + partes;
-            int finHilo = fin -1;
-            System.out.println("Hilo"+i+": (inicio,fin):"+inicio+","+finHilo);
+            ThreadSearch hilo1 = new ThreadSearch(inicio,finHilo,ipaddress);
             inicio = fin;
-            porciones.add(inicio);
+            hilos.add(hilo1);
+
         }
 
 
-
-
-        ThreadSearch hilo = new ThreadSearch(0,skds.getRegisteredServersCount(),ipaddress);
-        hilo.start();
-        try {
-            hilo.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        // por la cantidad de hilos los inicia, respetando el ciclo de vida.
+        for(ThreadSearch i : hilos){
+            i.start();
         }
 
-        LinkedList<Integer> blackListOcurrences = hilo.getBlackListOcurrences();
+        // para evitar condiciones carrera, espero a que todos los hilos terminen con el join()
+        // sin hacer el join, el buscador no espera a que los hilos acaben y dara una lista vacia diciendo que cualquiera es confiable
+        for(ThreadSearch i : hilos){
+            try {
+                i.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
-        int ocurrencesCount = blackListOcurrences.size();
 
-        int checkedListsCount = hilo.getCheckedListsCount();
+        // Se recopilan los datos en las ips buscadas y las apariciones
+        // Se juntan las respuestas de todos los hilos para dar formato a la salida
+        int ocurrencesCount = 0;
+        int checkedListsCount = 0;
+        LinkedList<Integer> blackListOcurrences = new LinkedList<>();
+
+        for(ThreadSearch i : hilos){
+
+            LinkedList<Integer> listaPorHilo = i.getBlackListOcurrences();
+
+            blackListOcurrences.addAll(listaPorHilo);
+            ocurrencesCount = ocurrencesCount + listaPorHilo.size();
+            checkedListsCount = checkedListsCount + i.getCheckedListsCount();
+
+        }
 
 
         if (ocurrencesCount>=BLACK_LIST_ALARM_COUNT){

@@ -3,6 +3,9 @@ package edu.eci.arsw.blacklistvalidator;
 import java.util.LinkedList;
 import edu.eci.arsw.spamkeywordsdatasource.HostBlacklistsDataSourceFacade;
 
+
+
+//1. clase que cumple con el ciclo de vida de un hilo y busca en las listas negras dado un inicio y un final
 public class ThreadSearch extends Thread{
 
     private final int inicio;

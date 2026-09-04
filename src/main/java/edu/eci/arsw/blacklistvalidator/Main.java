@@ -15,10 +15,8 @@ public class Main {
     
     public static void main(String a[]){
 
-
-        Porciones ejemplo = new Porciones(100,7);
         HostBlackListsValidator hblv=new HostBlackListsValidator();
-        List<Integer> blackListOcurrences=hblv.checkHost("202.24.34.55",1);
+        List<Integer> blackListOcurrences=hblv.checkHost("202.24.34.55",25);
         System.out.println("The host was found in the following blacklists:"+blackListOcurrences);
 
         
